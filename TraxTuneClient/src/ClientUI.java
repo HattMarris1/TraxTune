@@ -1,12 +1,9 @@
-package com.company;
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.security.*;
-
-import java.util.concurrent.ExecutionException;
+import java.io.DataOutputStream;
+import java.net.*;
 
 /**
  * Created by Matthew on 27/02/2017.
@@ -25,6 +22,12 @@ public class ClientUI {
             public void actionPerformed(ActionEvent e){
                 String userName = UserNameBox.getText();
                 char[] userPassword = PasswordBox.getPassword();
+                try {
+                    sendUserNameAndPasswordToServer(userName, userPassword);
+                }
+                catch (Exception e1){
+                }
+                /*
                 MessageDigest md = null;
                 
                 try {
@@ -43,6 +46,7 @@ public class ClientUI {
                 byte HashText[]=md.digest();
                 System.out.println(HashText + userName);
                 md.reset();
+                */
             }
         });
     }
@@ -60,5 +64,10 @@ public class ClientUI {
 
         frame.setVisible(true);
     }
-
+private static void sendUserNameAndPasswordToServer(String userName, char[] password)throws Exception{
+    InetAddress address = InetAddress.getByName("localhost");
+    Socket server  = new Socket(address,7777);
+    DataOutputStream outputStream = new DataOutputStream(server.getOutputStream());
+    outputStream.writeUTF(userName);
+}
 }

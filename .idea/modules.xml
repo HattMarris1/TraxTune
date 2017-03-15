@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/TraxTune.iml" filepath="$PROJECT_DIR$/TraxTune.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TraxTuneClient/TraxTuneClient.iml" filepath="$PROJECT_DIR$/TraxTuneClient/TraxTuneClient.iml" />
     </modules>
   </component>
 </project>

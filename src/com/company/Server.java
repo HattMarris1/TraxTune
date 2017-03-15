@@ -11,6 +11,8 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.BSON;
 import org.bson.Document;
+
+import java.io.*;
 import java.net.*;
 
 /**
@@ -21,9 +23,9 @@ public class Server {
     private MongoDatabase db;
     public Server(){
             // To connect to mongodb server
-            mongoClient = new MongoClient( "localhost" , 27017 );
+            mongoClient = new MongoClient( new MongoClientURI("mongodb://Admin:traxtune@ds123080.mlab.com:23080/traxtune") );
             // Now connect to your databases
-            db = mongoClient.getDatabase( "TraxTune" );
+            db = mongoClient.getDatabase( "traxtune" );
             MongoCollection Users = db.getCollection("Users");
             org.bson.Document doc = new org.bson.Document("UserName","Bret")
                     .append("Password","fjfjf")
@@ -33,6 +35,20 @@ public class Server {
             while (cursor.hasNext()){
             System.out.println(cursor.next());
             }
+            try{
+                ServerSocket server = new ServerSocket(7777);
 
+                while (true){
+                    System.out.println("Waiting for Client...");
+                    Socket client = server.accept();
+                    System.out.println("connected to client");
+                    DataInputStream b = new DataInputStream(client.getInputStream());
+                    System.out.println("client sends:");
+                    System.out.println(b.readUTF());
+                }
+            }
+            catch (IOException e){
+                System.err.println("couldn't create server socket"+e);
+            }
     }
 }
