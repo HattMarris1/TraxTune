@@ -1,20 +1,26 @@
+package client;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.DataOutputStream;
+import java.io.ObjectOutputStream;
 import java.net.*;
-
+import communication.loginInfo;
+import communication.registrationInfo;
 /**
  * Created by Matthew on 27/02/2017.
  */
-public class ClientUI {
+
+public class ClientUI{
     private JPanel panel1;
     private JLabel Title;
     private JTextField UserNameBox;
     private JPasswordField PasswordBox;
     private JButton LoginButton;
     private JButton RegisterButton;
+
+
 
     public ClientUI() {
         LoginButton.addActionListener(new ActionListener() {
@@ -23,7 +29,7 @@ public class ClientUI {
                 String userName = UserNameBox.getText();
                 char[] userPassword = PasswordBox.getPassword();
                 try {
-                    sendUserNameAndPasswordToServer(userName, userPassword);
+                    sendLoginInfoToServer(userName, userPassword);
                 }
                 catch (Exception e1){
                 }
@@ -49,9 +55,24 @@ public class ClientUI {
                 */
             }
         });
+        RegisterButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String userName = UserNameBox.getText();
+                char[] userPassword = PasswordBox.getPassword();
+                try {
+                    sendRegistrationInfoToServer(userName,userPassword);
+                }
+                catch (Exception e1){
+
+                }
+            }
+        });
     }
 
     public static void main(String[] args) {
+        //set up thread that checks for incoming data from server
+
         JFrame frame = new JFrame("ClientUI");
         frame.setContentPane(new ClientUI().panel1);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -64,10 +85,24 @@ public class ClientUI {
 
         frame.setVisible(true);
     }
-private static void sendUserNameAndPasswordToServer(String userName, char[] password)throws Exception{
+private void sendLoginInfoToServer(String userName, char[] password)throws Exception{
+    loginInfo userInfo = new loginInfo();
+    userInfo.name = userName;
+    userInfo.password = new String(password);
+
     InetAddress address = InetAddress.getByName("localhost");
     Socket server  = new Socket(address,7777);
-    DataOutputStream outputStream = new DataOutputStream(server.getOutputStream());
-    outputStream.writeUTF(userName);
+    ObjectOutputStream outputStream = new ObjectOutputStream(server.getOutputStream());
+    outputStream.writeObject(userInfo);
+}
+private void sendRegistrationInfoToServer(String userName, char[] password) throws Exception{
+        registrationInfo userInfo = new registrationInfo();
+        userInfo.name = userName;
+        userInfo.password= new String(password);
+
+    InetAddress address = InetAddress.getByName("localhost");
+    Socket server  = new Socket(address,7777);
+    ObjectOutputStream outputStream = new ObjectOutputStream(server.getOutputStream());
+    outputStream.writeObject(userInfo);
 }
 }
