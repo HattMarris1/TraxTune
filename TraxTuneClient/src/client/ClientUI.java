@@ -19,10 +19,11 @@ public class ClientUI{
     private JPasswordField PasswordBox;
     private JButton LoginButton;
     private JButton RegisterButton;
+    private Socket serverSocket;
 
 
+    public ClientUI(Socket server) {
 
-    public ClientUI() {
         LoginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e){
@@ -68,13 +69,9 @@ public class ClientUI{
                 }
             }
         });
-    }
-
-    public static void main(String[] args) {
-        //set up thread that checks for incoming data from server
-
+        serverSocket=server;
         JFrame frame = new JFrame("ClientUI");
-        frame.setContentPane(new ClientUI().panel1);
+        frame.setContentPane(this.panel1);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
 
@@ -84,15 +81,17 @@ public class ClientUI{
         frame.setLocation(x, y);
 
         frame.setVisible(true);
+
     }
+
+
 private void sendLoginInfoToServer(String userName, char[] password)throws Exception{
     loginInfo userInfo = new loginInfo();
     userInfo.name = userName;
     userInfo.password = new String(password);
 
-    InetAddress address = InetAddress.getByName("localhost");
-    Socket server  = new Socket(address,7777);
-    ObjectOutputStream outputStream = new ObjectOutputStream(server.getOutputStream());
+    ObjectOutputStream outputStream = new ObjectOutputStream(serverSocket.getOutputStream());
+    outputStream.reset();
     outputStream.writeObject(userInfo);
 }
 private void sendRegistrationInfoToServer(String userName, char[] password) throws Exception{
@@ -100,9 +99,8 @@ private void sendRegistrationInfoToServer(String userName, char[] password) thro
         userInfo.name = userName;
         userInfo.password= new String(password);
 
-    InetAddress address = InetAddress.getByName("localhost");
-    Socket server  = new Socket(address,7777);
-    ObjectOutputStream outputStream = new ObjectOutputStream(server.getOutputStream());
+    ObjectOutputStream outputStream = new ObjectOutputStream(serverSocket.getOutputStream());
+    outputStream.flush();
     outputStream.writeObject(userInfo);
 }
 }
