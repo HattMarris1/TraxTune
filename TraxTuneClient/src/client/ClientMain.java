@@ -3,7 +3,7 @@ package client;
 import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import communication.serverResponse;
+import org.bson.Document;
 
 /**
  * Created by Matthew on 19/04/2017.
@@ -40,14 +40,14 @@ public class ClientMain implements Runnable{
 
             ObjectInputStream inFromServer = new ObjectInputStream(server.getInputStream());
             Object objResponse = inFromServer.readObject();
-            serverResponse response = (serverResponse) objResponse;
+            Document response = (Document) objResponse;
             System.out.println(response);
-            if (response.success) {
+            if (response.getBoolean("success")==true) {
                 //success event
                 System.out.println("successfully logged in");
                 LoginScreen.close();
             } else {
-                System.out.println(response.description);
+                System.out.println(response.getString("error"));
             }
         } catch (java.io.IOException e1) {
             System.out.println(e1);

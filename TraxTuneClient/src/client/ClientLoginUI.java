@@ -6,8 +6,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.ObjectOutputStream;
 import java.net.*;
-import communication.loginInfo;
-import communication.registrationInfo;
+
+import com.mongodb.Mongo;
+import org.bson.BSON;
+import org.bson.Document;
+
 /**
  * Created by Matthew on 27/02/2017.
  */
@@ -90,21 +93,21 @@ public class ClientLoginUI {
     }
 
 private void sendLoginInfoToServer(String userName, char[] password)throws Exception{
-    loginInfo userInfo = new loginInfo();
-    userInfo.name = userName;
-    userInfo.password = new String(password);
+    Document userInfoDoc = new Document("header","login")
+            .append("userName",userName)
+            .append("password",new String(password));
 
     ObjectOutputStream outputStream = new ObjectOutputStream(serverSocket.getOutputStream());
     outputStream.reset();
-    outputStream.writeObject(userInfo);
+    outputStream.writeObject(userInfoDoc);
 }
 private void sendRegistrationInfoToServer(String userName, char[] password) throws Exception{
-        registrationInfo userInfo = new registrationInfo();
-        userInfo.name = userName;
-        userInfo.password= new String(password);
+    Document userInfoDoc = new Document("header","register")
+            .append("userName",userName)
+            .append("password",new String(password));
 
     ObjectOutputStream outputStream = new ObjectOutputStream(serverSocket.getOutputStream());
     outputStream.flush();
-    outputStream.writeObject(userInfo);
+    outputStream.writeObject(userInfoDoc);
 }
 }

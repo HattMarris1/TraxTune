@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/TraxTune.iml" filepath="$PROJECT_DIR$/TraxTune.iml" />
       <module fileurl="file://$PROJECT_DIR$/TraxTuneClient/TraxTuneClient.iml" filepath="$PROJECT_DIR$/TraxTuneClient/TraxTuneClient.iml" />
-      <module fileurl="file://$PROJECT_DIR$/communicationProtocol/communicationProtocol.iml" filepath="$PROJECT_DIR$/communicationProtocol/communicationProtocol.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TraxTuneServer/TraxTuneServer.iml" filepath="$PROJECT_DIR$/TraxTuneServer/TraxTuneServer.iml" />
     </modules>
   </component>
 </project>
