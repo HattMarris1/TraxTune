@@ -11,6 +11,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.sun.xml.internal.bind.v2.TODO;
+import communication.serverResponse;
 import org.bson.BSON;
 import org.bson.Document;
 import communication.registrationInfo;
@@ -57,10 +58,10 @@ public class Server {
                     java.lang.Object inObj = clientInput1.readObject();
 
                     System.out.println("client sends:");
-                    Class ct = inObj.getClass();
+                    Class requestType = inObj.getClass();
 
                     //if statement to determine the type of request from the user
-                    if(ct.equals(loginInfo.class)){
+                    if(requestType.equals(loginInfo.class)){
                         loginInfo LI = (loginInfo)inObj;
 
                         System.out.println(LI.name);
@@ -81,10 +82,13 @@ public class Server {
                                 System.out.println("user verified");
 
                                 //TODO: put user in online user map
+                                serverResponse toClient = new serverResponse(true, "all good");
+
+                                clientOutput.writeObject(toClient);
                             }
                         }
                     }
-                    else if(ct.equals(registrationInfo.class)){
+                    else if(requestType.equals(registrationInfo.class)){
                         registrationInfo RI = (registrationInfo)inObj;
                         System.out.println(RI);
                         //check if user already exists
