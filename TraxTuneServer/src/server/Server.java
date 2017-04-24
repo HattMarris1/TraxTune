@@ -17,6 +17,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -79,26 +80,28 @@ public class Server {
                             System.out.println(password.compareTo(theUser.get("password").toString()));
                             if (password.compareTo(theUser.get("password").toString())==0){
                                 System.out.println("user verified");
-
+                                Users.updateOne(eq("name",userName), new Document("$set", new Document("lastLogin", new Date())));
                                 //TODO: put user in online user map
-                                Document toClient = new Document("header", "response")
+                                Document toClient = new Document("profile",theUser)
                                         .append("success",true);
 
                                 clientOutput.writeObject(toClient);
                             }
                         }
                     }
-                    else if(userData.getString("header")=="request"){
+                    else if(Objects.equals(userData.getString("header"), "register")){
 
-                        userName = userData.getString("username");
+                        userName = userData.getString("userName");
                         String password = userData.getString("password");
                         //check if user already exists
                         Document theUser = Users.find(eq("name", userName)).first();
                         System.out.println(theUser);
                         if (theUser== null){
                             //put user in mongodb
+                            Date now = new Date();
                             Document doc = new Document("name",userName)
-                                    .append("password",password);
+                                    .append("password",password)
+                                    .append("registration",now);
                             Users.insertOne(doc);
                             System.out.println("user added to db");
                         }

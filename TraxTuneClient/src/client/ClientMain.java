@@ -9,9 +9,13 @@ import org.bson.Document;
  * Created by Matthew on 19/04/2017.
  */
 public class ClientMain implements Runnable{
-    public static InetAddress address;
-    public static Socket server;
-    public static ClientLoginUI LoginScreen;
+    private static InetAddress address;
+    private static Socket server;
+    private static ClientLoginUI LoginScreen;
+    private static MainUI mainScreen;
+
+    private String userName;
+    private String id;
 
     public static void main(String args[]){
 
@@ -28,11 +32,6 @@ public class ClientMain implements Runnable{
         LoginScreen = new ClientLoginUI(server);
     }
 
-    public static void userLoggedin(){
-        //TODO: shut login screen and open the main window
-        LoginScreen.close();
-
-    }
 
     public void run(){
         while (true) try {
@@ -42,10 +41,15 @@ public class ClientMain implements Runnable{
             Object objResponse = inFromServer.readObject();
             Document response = (Document) objResponse;
             System.out.println(response);
-            if (response.getBoolean("success")==true) {
+            if (response.getBoolean("success")) {
                 //success event
                 System.out.println("successfully logged in");
+                userName = response.getString("name");
+                id = response.getString("_id");
                 LoginScreen.close();
+                mainScreen = new MainUI(server, response);
+
+
             } else {
                 System.out.println(response.getString("error"));
             }
