@@ -12,7 +12,7 @@ import communication.registrationInfo;
  * Created by Matthew on 27/02/2017.
  */
 
-public class ClientUI{
+public class ClientLoginUI {
     private JPanel panel1;
     private JLabel Title;
     private JTextField UserNameBox;
@@ -20,9 +20,9 @@ public class ClientUI{
     private JButton LoginButton;
     private JButton RegisterButton;
     private Socket serverSocket;
+    private JFrame frame;
 
-
-    public ClientUI(Socket server) {
+    public ClientLoginUI(Socket server) {
 
         LoginButton.addActionListener(new ActionListener() {
             @Override
@@ -70,7 +70,7 @@ public class ClientUI{
             }
         });
         serverSocket=server;
-        JFrame frame = new JFrame("ClientUI");
+        frame = new JFrame("ClientLoginUI");
         frame.setContentPane(this.panel1);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -84,6 +84,10 @@ public class ClientUI{
 
     }
 
+    public void close(){
+        frame.setVisible(false);
+        frame.dispose();
+    }
 
 private void sendLoginInfoToServer(String userName, char[] password)throws Exception{
     loginInfo userInfo = new loginInfo();

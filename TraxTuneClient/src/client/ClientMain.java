@@ -1,6 +1,5 @@
 package client;
 
-import java.io.DataInputStream;
 import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -12,6 +11,8 @@ import communication.serverResponse;
 public class ClientMain implements Runnable{
     public static InetAddress address;
     public static Socket server;
+    public static ClientLoginUI LoginScreen;
+
     public static void main(String args[]){
 
         try{
@@ -24,11 +25,13 @@ public class ClientMain implements Runnable{
 
         //ClientMain theServerListener = new ClientMain();
        new Thread(new ClientMain()).start();
-        ClientUI LoginScreen = new ClientUI(server);
+        LoginScreen = new ClientLoginUI(server);
     }
 
     public static void userLoggedin(){
         //TODO: shut login screen and open the main window
+        LoginScreen.close();
+
     }
 
     public void run(){
@@ -41,8 +44,8 @@ public class ClientMain implements Runnable{
             System.out.println(response);
             if (response.success) {
                 //success event
-                System.out.println("succesfully logged in");
-                main(null);
+                System.out.println("successfully logged in");
+                LoginScreen.close();
             } else {
                 System.out.println(response.description);
             }
