@@ -130,7 +130,11 @@ public class Server {
 
                     }
                     else if (Objects.equals(userData.getString("header"), "addfriends")){
-
+                        Document user = Users.find(eq("name",userName)).first();
+                        Document userNewFriend = new Document();
+                        ArrayList<String > list = (ArrayList<String>) user.get("users");
+                        userNewFriend.put("addToSet", new Document().append("friends",list));
+                        Users.updateOne(eq("name", userName),userNewFriend);
                     }
                     else{
                         System.out.println("not an object type I recognise");

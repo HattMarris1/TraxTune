@@ -44,7 +44,7 @@ public class MainUI {
                 try {
                     Document usersToAdd = new Document("header", "addfriends")
                             .append("users", friendsToAdd);
-
+                    ClientMain.sendDataToServer(usersToAdd);
                 }
                 catch (Exception e1){
                     System.out.println(e1);
