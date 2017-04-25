@@ -17,11 +17,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
+import static com.mongodb.client.model.Filters.all;
 import static com.mongodb.client.model.Filters.eq;
 
 /**
@@ -38,26 +36,31 @@ public class Server {
         private String userName;
 
         private Socket userSocket;
-        private ObjectInputStream clientInput;
-        private ObjectOutputStream clientOutput;
+        private ObjectInputStream clientInput = null;
+        private ObjectOutputStream clientOutput = null;
 
         private long UID;
 
         public clientSession(Socket userSocket) {
             this.userSocket = userSocket;
+            try {
+                clientInput = new ObjectInputStream(userSocket.getInputStream());
+                clientOutput = new ObjectOutputStream(userSocket.getOutputStream());
+            }
+            catch (IOException e4){
+
+            }
         }
 
         public void run(){
             try {
                 /*clientInput = new ObjectInputStream(userSocket.getInputStream());*/
-                clientOutput = new ObjectOutputStream(userSocket.getOutputStream());
+                //clientOutput = new ObjectOutputStream(userSocket.getOutputStream());
                 while (true){
-
-                   ObjectInput clientInput1 = new ObjectInputStream(userSocket.getInputStream());
-                    Document userData = (Document)clientInput1.readObject();
+                    Object raw = clientInput.readObject();
+                    Document userData = (Document)raw;
                     System.out.println(userData);
                     System.out.println("client sends:");
-
 
                     //if statement to determine the type of request from the user
                     if(Objects.equals(userData.getString("header"), "login")){
@@ -83,9 +86,10 @@ public class Server {
                                 Users.updateOne(eq("name",userName), new Document("$set", new Document("lastLogin", new Date())));
                                 //TODO: put user in online user map
                                 Document toClient = new Document("profile",theUser)
-                                        .append("success",true);
+                                        .append("header","loginsuccess");
 
                                 clientOutput.writeObject(toClient);
+                                clientOutput.flush();
                             }
                         }
                     }
@@ -109,6 +113,24 @@ public class Server {
                             //user already exists
                             System.out.println("user already registered");
                         }
+                    }
+                    else if (Objects.equals(userData.getString("header"), "getallusers")){
+                       ArrayList<String> users = new ArrayList<>();
+                       MongoCursor<Document> cursor = Users.find().iterator();
+
+                       while (cursor.hasNext()) {
+                         String nametemp = cursor.next().getString("name");
+                         users.add(nametemp);
+                       }
+
+                        Document allUserNames = new Document("header", "alluserdata")
+                                .append("users",users);
+                        clientOutput.writeObject(allUserNames);
+                        clientOutput.flush();
+
+                    }
+                    else if (Objects.equals(userData.getString("header"), "addfriends")){
+
                     }
                     else{
                         System.out.println("not an object type I recognise");

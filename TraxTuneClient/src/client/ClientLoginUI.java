@@ -22,10 +22,9 @@ public class ClientLoginUI {
     private JPasswordField PasswordBox;
     private JButton LoginButton;
     private JButton RegisterButton;
-    private Socket serverSocket;
     private JFrame frame;
 
-    public ClientLoginUI(Socket server) {
+    public ClientLoginUI() {
 
         LoginButton.addActionListener(new ActionListener() {
             @Override
@@ -64,15 +63,12 @@ public class ClientLoginUI {
             public void actionPerformed(ActionEvent e) {
                 String userName = UserNameBox.getText();
                 char[] userPassword = PasswordBox.getPassword();
-                try {
-                    sendRegistrationInfoToServer(userName,userPassword);
-                }
-                catch (Exception e1){
 
-                }
+                sendRegistrationInfoToServer(userName,userPassword);
+
             }
         });
-        serverSocket=server;
+
         frame = new JFrame("ClientLoginUI");
         frame.setContentPane(this.panel1);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -92,22 +88,18 @@ public class ClientLoginUI {
         frame.dispose();
     }
 
-private void sendLoginInfoToServer(String userName, char[] password)throws Exception{
+private void sendLoginInfoToServer(String userName, char[] password){
     Document userInfoDoc = new Document("header","login")
             .append("userName",userName)
             .append("password",new String(password));
+    ClientMain.sendDataToServer(userInfoDoc);
 
-    ObjectOutputStream outputStream = new ObjectOutputStream(serverSocket.getOutputStream());
-    outputStream.reset();
-    outputStream.writeObject(userInfoDoc);
 }
-private void sendRegistrationInfoToServer(String userName, char[] password) throws Exception{
+private void sendRegistrationInfoToServer(String userName, char[] password){
     Document userInfoDoc = new Document("header","register")
             .append("userName",userName)
             .append("password",new String(password));
 
-    ObjectOutputStream outputStream = new ObjectOutputStream(serverSocket.getOutputStream());
-    outputStream.flush();
-    outputStream.writeObject(userInfoDoc);
+    ClientMain.sendDataToServer(userInfoDoc);
 }
 }

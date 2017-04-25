@@ -135,14 +135,102 @@
               </component>
             </children>
           </grid>
-          <grid id="5578e" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="5578e" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <tabbedpane title="Add Friends"/>
             </constraints>
             <properties/>
             <border type="none"/>
-            <children/>
+            <children>
+              <component id="18565" class="javax.swing.JList" binding="addFriendsList">
+                <constraints>
+                  <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="50"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <font size="20"/>
+                  <model/>
+                </properties>
+              </component>
+              <component id="f43fc" class="javax.swing.JList" binding="pendingList">
+                <constraints>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                    <preferred-size width="150" height="50"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <font size="20"/>
+                </properties>
+              </component>
+              <component id="ceefe" class="javax.swing.JList" binding="currentFriendsList">
+                <constraints>
+                  <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="2" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                    <preferred-size width="351" height="50"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <font size="20"/>
+                  <model/>
+                </properties>
+              </component>
+              <component id="aac4d" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <font size="20"/>
+                  <text value="Pending Requests:"/>
+                </properties>
+              </component>
+              <component id="91972" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
+                    <preferred-size width="351" height="27"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <font size="20"/>
+                  <text value="Your Friends:"/>
+                </properties>
+              </component>
+              <component id="fc3c3" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <font size="20"/>
+                  <text value="People you may know:"/>
+                </properties>
+              </component>
+              <component id="ac839" class="javax.swing.JButton" binding="addFriendsButton" default-binding="true">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Add Friends"/>
+                </properties>
+              </component>
+              <component id="194d2" class="javax.swing.JButton" binding="deleteFriendsButton" default-binding="true">
+                <constraints>
+                  <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                    <preferred-size width="351" height="32"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <text value="Delete Friends"/>
+                </properties>
+              </component>
+              <component id="29f26" class="javax.swing.JButton" binding="sendFriendRequestsButton" default-binding="true">
+                <constraints>
+                  <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Send Friend Requests"/>
+                </properties>
+              </component>
+            </children>
           </grid>
           <grid id="2cdeb" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
