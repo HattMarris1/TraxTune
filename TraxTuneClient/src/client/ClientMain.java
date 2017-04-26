@@ -75,6 +75,10 @@ public class ClientMain implements Runnable{
                 mainScreen.setPeopleYouMayKnow(userArray);
                 System.out.println(response.get("users"));
             }
+            else if (Objects.equals(response.getString("header"), "refreshaccount")){
+                Document userDetails = (Document) response.get("userdetails");
+                mainScreen.refreshAccount(userDetails);
+            }
             else {
                 System.out.println(response.getString("error"));
             }

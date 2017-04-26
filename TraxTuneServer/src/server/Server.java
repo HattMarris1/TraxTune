@@ -130,11 +130,69 @@ public class Server {
 
                     }
                     else if (Objects.equals(userData.getString("header"), "addfriends")){
+                        //TODO clear up this functional mess...
+                        //adds each friend to the user's list
                         Document user = Users.find(eq("name",userName)).first();
-                        Document userNewFriend = new Document();
-                        ArrayList<String > list = (ArrayList<String>) user.get("users");
-                        userNewFriend.put("addToSet", new Document().append("friends",list));
-                        Users.updateOne(eq("name", userName),userNewFriend);
+                        Document userNew = new Document();
+                        Document usersNewFriends = new Document();
+                        ArrayList<String > list = (ArrayList<String>) userData.get("users");
+
+                        Iterator<String> iterator1 = list.iterator();
+                        while (iterator1.hasNext()){
+                            usersNewFriends.append("friends",iterator1.next());
+                        }
+                        userNew.put("$addToSet", usersNewFriends);
+                        Users.updateOne(eq("name", userName),userNew);
+
+                        //adds this user to each of the friend's lists
+                        Iterator<String> iterator2 = list.iterator();
+                        Document thisUserNew = new Document();
+                        Document thisUserAppend = new Document();
+                        thisUserAppend.put("$addToSet", new Document().append("friends",userName));
+                        while (iterator2.hasNext()){
+                            Users.updateOne(eq("name",iterator2.next()),thisUserAppend);
+                        }
+
+                        //remove the friends from the users pending list
+                        Iterator<String> iterator3 = list.iterator();
+                        Document userOldPending = new Document();
+                        while (iterator3.hasNext()){
+                            userOldPending.append("requests",iterator3.next());
+                        }
+                        thisUserNew.put("$pull", userOldPending);
+                        Users.updateOne(eq("name",userName),thisUserNew);
+                        clientOutput.writeObject(new Document("header","refreshaccount")
+                                    .append("userdetails",Users.find(eq("name",userName)).first()));
+                        clientOutput.flush();
+                    }
+                    else if (Objects.equals(userData.getString("header"), "friendRequest")){
+                        //put this user in the target friends requests list
+                        ArrayList<String > list = (ArrayList<String>) userData.get("users");
+                       Iterator<String> iterator =  list.iterator();
+                        Document thisUser = new Document();
+                        thisUser.put("$addToSet", new Document().append("requests",userName));
+                       while(iterator.hasNext()){
+                           Users.updateOne(eq("name", iterator.next()),thisUser);
+                       }
+                    }
+                    else if (Objects.equals(userData.getString("header"), "getmyaccount")){
+                       Document account = Users.find(eq("name",userName)).first();
+                       Document accountPackage = new Document("header","refreshaccount")
+                               .append("userdetails",account);
+                       clientOutput.writeObject(accountPackage);
+                       clientOutput.flush();
+                    }
+                    else if (Objects.equals(userData.getString("header"), "deletefriends")){
+                        //delete entry in user document
+                        //delete entry in friend doc
+                        ArrayList<String > list = (ArrayList<String>) userData.get("users");
+                        Iterator<String> iterator = list.iterator();
+                        while (iterator.hasNext()){
+                            String temp = iterator.next();
+                            Users.updateOne(eq("name",userName), (new Document("$pull", new Document("friends",temp))));
+                            Users.updateOne(eq("name",temp), (new Document("$pull", new Document("friends",userName))));
+                        }
+
                     }
                     else{
                         System.out.println("not an object type I recognise");

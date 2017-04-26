@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created by Matthew on 24/04/2017.
@@ -32,6 +33,7 @@ public class MainUI {
     private JButton addFriendsButton;
     private JButton deleteFriendsButton;
     private JButton sendFriendRequestsButton;
+    private JButton refreshButton;
     private JList user;
 
     public MainUI(Socket server, Document userDetails) {
@@ -39,10 +41,27 @@ public class MainUI {
         addFriendsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                ArrayList<String> friendsToAdd = (ArrayList<String>) addFriendsList.getSelectedValuesList();
+                List pendList =pendingList.getSelectedValuesList();
+                ArrayList<String> friendsToAdd = (ArrayList<String>) pendList;
 
                 try {
                     Document usersToAdd = new Document("header", "addfriends")
+                            .append("users", friendsToAdd);
+                    ClientMain.sendDataToServer(usersToAdd);
+                }
+                catch (Exception e1){
+                    System.out.println(e1);
+                }
+            }
+        });
+        sendFriendRequestsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                List requestList = addFriendsList.getSelectedValuesList();
+                ArrayList<String> friendsToAdd = (ArrayList<String>) requestList;
+
+                try {
+                    Document usersToAdd = new Document("header", "friendRequest")
                             .append("users", friendsToAdd);
                     ClientMain.sendDataToServer(usersToAdd);
                 }
@@ -65,27 +84,27 @@ public class MainUI {
         frame.setLocation(0, 0);
 
         frame.setVisible(true);
-        setUserNameLabel(userDetails.getString("name"));
-        setDateRegisteredLabel(userDetails.getDate("registration"));
-        setLastLoggedInLabel(userDetails.getDate("lastLogin"));
+        refreshAccount(userDetails);
 
-        ArrayList<String> friends = (ArrayList<String>)userDetails.get("friends");
-        if(friends!=null){
-            String[] f=new String[friends.size()];
-            Object friendObj[] =  friends.toArray(f);
-            currentFriendsList.setListData(friendObj);
-        }
-        ArrayList<String> pendingRequests = (ArrayList<String>)userDetails.get("requests");
+        refreshButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Document r = new Document("header","getmyaccount");
+                ClientMain.sendDataToServer(r);
+            }
+        });
+        deleteFriendsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
 
-        if(pendingRequests!= null){
-            String[] pr=new String[pendingRequests.size()];
-            Object requestObj[] =  pendingRequests.toArray(pr);
-            pendingList.setListData(requestObj);
-        }
+                List deleteList = currentFriendsList.getSelectedValuesList();
+                ArrayList<String> friendsToDelete= (ArrayList<String>) deleteList;
+                Document d = new Document("header","deletefriends")
+                        .append("users",friendsToDelete);
 
-        getListOfUsers();
-
-
+                ClientMain.sendDataToServer(d);
+            }
+        });
     }
 
     private void setUserNameLabel(String userName) {
@@ -98,7 +117,13 @@ public class MainUI {
     }
 
     private void setLastLoggedInLabel(Date dateLastLoggedIn) {
-        LastLoggedInLabel.setText(dateLastLoggedIn.toString());
+        if(dateLastLoggedIn!=null){
+            LastLoggedInLabel.setText(dateLastLoggedIn.toString());
+        }
+        else {
+            LastLoggedInLabel.setText((new Date().toString()));
+        }
+
     }
 
     private void setNoOfFriendsLabel(int noOfFriends) {
@@ -115,5 +140,25 @@ public void setPeopleYouMayKnow( ArrayList<String> userArray){
         Object usersObj[] = userArray.toArray(ud);
         addFriendsList.setListData(usersObj);
     }
+public void refreshAccount(Document userDetails){
+    System.out.println(userDetails);
+    setUserNameLabel(userDetails.getString("name"));
+    setDateRegisteredLabel(userDetails.getDate("registration"));
+    setLastLoggedInLabel(userDetails.getDate("lastLogin"));
 
+    ArrayList<String> friends = (ArrayList<String>)userDetails.get("friends");
+    if(friends!=null){
+        String[] f=new String[friends.size()];
+        Object friendObj[] =  friends.toArray(f);
+        currentFriendsList.setListData(friendObj);
+    }
+    ArrayList<String> pendingRequests = (ArrayList<String>)userDetails.get("requests");
+
+    if(pendingRequests!= null){
+        String[] pr=new String[pendingRequests.size()];
+        Object requestObj[] =  pendingRequests.toArray(pr);
+        pendingList.setListData(requestObj);
+    }
+    getListOfUsers();
+}
 }
