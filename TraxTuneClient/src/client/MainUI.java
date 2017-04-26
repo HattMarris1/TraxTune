@@ -241,7 +241,7 @@ public void updateChat(Document chatData){
            ChatTextArea.setText("");
            while (documentIterator.hasNext()){
                Document temp = documentIterator.next();
-               ChatTextArea.append("\n<from= "+temp.getString("from")+"Date :"/*+(temp.getDate("date").toString())*/+"> ");
+               ChatTextArea.append("\n<from= "+temp.getString("from")/*+(temp.getDate("date").toString())*/+"> ");
                ChatTextArea.append(temp.getString("content"));
            }
        }
