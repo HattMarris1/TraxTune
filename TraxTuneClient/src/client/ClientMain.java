@@ -28,6 +28,7 @@ public class ClientMain implements Runnable{
     public static void main(String args[]){
 
         try{
+            //address and server for the server
             address = InetAddress.getByName("localhost");
             server  = new Socket(address,7777);
 
@@ -35,8 +36,7 @@ public class ClientMain implements Runnable{
         catch (java.io.IOException e){
             System.err.println(e);
         }
-
-        //ClientMain theServerListener = new ClientMain();
+        //start thread to listen for communication from the server
         new Thread(new ClientMain()).start();
         LoginScreen = new ClientLoginUI();
     }
@@ -44,22 +44,22 @@ public class ClientMain implements Runnable{
 
     public void run(){
         try {
+            //sets the input and output streams for the server
             outToServer = new ObjectOutputStream(server.getOutputStream());
             inFromServer = new ObjectInputStream(server.getInputStream());
-
         }
         catch(IOException er){
             er.printStackTrace();
         }
         while (true) try {
             System.out.println("listening for server stuff...");
-
-
+            //gets the object from the inputStream
             Object objResponse = inFromServer.readObject();
             Document response = (Document) objResponse;
             System.out.println(response);
+            //checks the header element in the BSON document the server sent to determine the type of data
             if (Objects.equals(response.getString("header"), "loginsuccess")) {
-                //success event
+                //login successfully
                 System.out.println("successfully logged in");
                 userName = response.getString("name");
                 id = response.getString("_id");
@@ -69,23 +69,26 @@ public class ClientMain implements Runnable{
 
             }
             else if (Objects.equals(response.getString("header"), "alluserdata")){
-                //call something in MainUI?
+                //all the other usernames from the server
                 ArrayList<String> userArray;
                 userArray = (ArrayList<String>)response.get("users");
                 mainScreen.setPeopleYouMayKnow(userArray);
                 System.out.println(response.get("users"));
             }
             else if (Objects.equals(response.getString("header"), "refreshaccount")){
+                //updates the local userdata with that from the server
                 Document userDetails;
                 userDetails = (Document) response.get("userdetails");
                 mainScreen.refreshAccount(userDetails);
             }
             else if (Objects.equals(response.getString("header"), "mychats")){
+                //returns all the chats the user is part of
                 ArrayList<String> userList;
                 userList = (ArrayList<String>) response.get("chatlist");
                 mainScreen.setChatMemberListView(userList);
             }
             else if (Objects.equals(response.getString("header"), "messages")){
+                //returns the chat data for a chat
                 Document messages= (Document)response.get("chatdata");
                 mainScreen.updateChat(messages);
             }

@@ -1,12 +1,15 @@
 package client;
 
 import org.bson.Document;
+import sun.applet.Main;
 
 import javax.print.Doc;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -46,10 +49,10 @@ public class MainUI {
     private String currentChat="";
 
     public MainUI(Socket server, Document userDetails) {
-
         addFriendsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //sends a request to the server to add users to this users friends
                 List pendList =pendingList.getSelectedValuesList();
                 if(!pendList.isEmpty()){
                     ArrayList<String> friendsToAdd = (ArrayList<String>) pendList;
@@ -62,6 +65,7 @@ public class MainUI {
         sendFriendRequestsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //send a request to put the users name in the other users pending friend requests
                 List requestList = addFriendsList.getSelectedValuesList();
                 if(!requestList.isEmpty()){
                     ArrayList<String> friendsToAdd = (ArrayList<String>) requestList;
@@ -72,7 +76,7 @@ public class MainUI {
             }
         }
         );
-
+        //initialises the frame
         frame = new JFrame("ClientLoginUI");
         frame.setSize(1366,768);
         frame.setContentPane(this.panel1);
@@ -90,6 +94,7 @@ public class MainUI {
         refreshButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //gets the most up to date version of the users account
                 Document r = new Document("header","getmyaccount");
                 ClientMain.sendDataToServer(r);
             }
@@ -97,7 +102,7 @@ public class MainUI {
         deleteFriendsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-
+                //removes users from this users friends list
                 List deleteList = currentFriendsList.getSelectedValuesList();
                 if(!deleteList.isEmpty()){
                     ArrayList<String> friendsToDelete= (ArrayList<String>) deleteList;
@@ -112,6 +117,7 @@ public class MainUI {
         createChatWithAboveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //creates a new group chat with the users in the listview
                 List usersToadd = FriendsList.getSelectedValuesList();
                 if (!usersToadd.isEmpty()){
                     ArrayList<String> addUser = (ArrayList<String >) usersToadd;
@@ -126,6 +132,7 @@ public class MainUI {
         switchChatButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //get the desired chat from the server
                 String chat = (String)ChatList.getSelectedValue();
                 Document d = new Document("header","getmessages")
                         .append("chatname",chat);
@@ -136,6 +143,7 @@ public class MainUI {
         sendButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //sends the users chat message to the server, and the chat its for
                 String message = messageField.getText();
                 if(currentChat != ""&&message!="")
                 {
@@ -144,6 +152,14 @@ public class MainUI {
                         .append("chat",currentChat);
                 ClientMain.sendDataToServer(d);
                 }
+            }
+        });
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                //sends a logout request when the user closes the window
+                super.windowClosing(e);
+                ClientMain.sendDataToServer(new Document("header","logout"));
             }
         });
     }

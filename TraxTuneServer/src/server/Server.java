@@ -68,8 +68,7 @@ public class Server {
 
         public void run(){
             try {
-                /*clientInput = new ObjectInputStream(userSocket.getInputStream());*/
-                //clientOutput = new ObjectOutputStream(userSocket.getOutputStream());
+
                 while (true){
                     Object raw = clientInput.readObject();
                     Document userData = (Document)raw;
@@ -78,27 +77,17 @@ public class Server {
 
                     //if statement to determine the type of request from the user
                     if(Objects.equals(userData.getString("header"), "login")){
+                        //login request: validate user login details
                         userName = userData.getString("userName");
                         String password = userData.getString("password");
 
-                        System.out.println(userName);
-                        System.out.println(password);
                         //check if user exists on system and if they're already online
                         Document theUser = Users.find(eq("name", userName)).first();
-                        System.out.println(theUser);
                         if((theUser!=null) && !(clients.containsKey(userName)) ){
                             //check if password is correct
-                            System.out.println(password);
-                            System.out.println(theUser.get("password").toString());
-                        /*for(int i=0; i< LI.password.length; i++){
-                            if (LI.password[i]==theUser.get("password").toString()[i]){
-                            }
-                        }*/
-                            System.out.println(password.compareTo(theUser.get("password").toString()));
                             if (password.compareTo(theUser.get("password").toString())==0){
                                 System.out.println("user verified");
                                 Users.updateOne(eq("name",userName), new Document("$set", new Document("lastLogin", new Date())));
-                                //TODO: put user in online user map
                                 clients.put(userName,this);
                                 Document toClient = new Document("profile",theUser)
                                         .append("header","loginsuccess");
@@ -109,7 +98,7 @@ public class Server {
                         }
                     }
                     else if(Objects.equals(userData.getString("header"), "register")){
-
+                        //register request: check user doesn't already exist, then put them in mongodb
                         userName = userData.getString("userName");
                         String password = userData.getString("password");
                         //check if user already exists
@@ -130,9 +119,9 @@ public class Server {
                         }
                     }
                     else if (Objects.equals(userData.getString("header"), "getallusers")){
+                        //getallusers: returns a document with all the usernames on the server in it
                        ArrayList<String> users = new ArrayList<>();
                        MongoCursor<Document> cursor = Users.find().iterator();
-
                        while (cursor.hasNext()) {
                          String nametemp = cursor.next().getString("name");
                          users.add(nametemp);
@@ -145,7 +134,6 @@ public class Server {
 
                     }
                     else if (Objects.equals(userData.getString("header"), "addfriends")){
-                        //TODO clear up this functional mess...
                         //adds each friend to the user's list
                         Document user = Users.find(eq("name",userName)).first();
                         Document userNew = new Document();
@@ -191,6 +179,7 @@ public class Server {
                        }
                     }
                     else if (Objects.equals(userData.getString("header"), "getmyaccount")){
+                        //get account details for the user
                        Document account = Users.find(eq("name",userName)).first();
                        Document accountPackage = new Document("header","refreshaccount")
                                .append("userdetails",account);
@@ -209,6 +198,7 @@ public class Server {
                         }
                     }
                     else if (Objects.equals(userData.getString("header"), "createchat")){
+                        //create a chat for the users provided in the request
                         ArrayList<String > users = (ArrayList<String >)userData.get("users");
                         users.add(userName);
                         Document chatdoc = new Document("chatname",userData.get("chatname"))
@@ -216,6 +206,7 @@ public class Server {
                         Chats.insertOne(chatdoc);
                     }
                     else if (Objects.equals(userData.getString("header"), "getmychats")){
+                        //get the list of chats the user is part of
                         ArrayList<String> chats = new ArrayList<>();
                         MongoCursor<Document> cursor = Chats.find(in("users",userName)).iterator();
                         while(cursor.hasNext()){
@@ -228,6 +219,7 @@ public class Server {
                         clientOutput.writeObject(toUser);
                     }
                     else if (Objects.equals(userData.getString("header"), "getmessages")){
+                        //get the chat log
                         String chatName = userData.getString("chatname");
                         Document theChat = Chats.find(eq("chatname",chatName)).first();
                         Document toUser = new Document("header","messages")
@@ -235,6 +227,7 @@ public class Server {
                         clientOutput.writeObject(toUser);
                     }
                     else if (Objects.equals(userData.getString("header"), "sendmessage")){
+                        //put message in the mongodb, and send request to all online users to update their chat field
                         Document newMessage = new Document("messages", new Document("content",userData.getString("message"))
                                 .append("from",userName)
                                 .append("date",new Date()));
@@ -257,6 +250,9 @@ public class Server {
                             }
                         }
                     }
+                    else if (Objects.equals(userData.getString("header"), "logmeout")){
+                        break;
+                    }
                     else{
                         System.out.println("not an object type I recognise");
                     }
@@ -270,6 +266,16 @@ public class Server {
             }
             catch(ClassNotFoundException e2){
                 System.err.println(e2);
+            }
+            finally {
+                //remove the user from the map of online users
+                clients.remove(userName);
+                try {
+                    userSocket.close();
+                }
+                catch (IOException ex){
+                    ex.printStackTrace();
+                }
             }
         }
     }
