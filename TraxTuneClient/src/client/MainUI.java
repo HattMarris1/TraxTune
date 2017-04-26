@@ -169,8 +169,9 @@ public class MainUI {
     }
 
     private void setDateRegisteredLabel(Date dateRegistered) {
-
-        DateRegisteredLabel.setText(dateRegistered.toString());
+        if (dateRegistered!=null){
+            DateRegisteredLabel.setText(dateRegistered.toString());
+        }
     }
 
     private void setLastLoggedInLabel(Date dateLastLoggedIn) {

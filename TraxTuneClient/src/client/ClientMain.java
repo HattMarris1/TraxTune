@@ -52,7 +52,7 @@ public class ClientMain implements Runnable{
             er.printStackTrace();
         }
         while (true) try {
-            System.out.println("listening for server stuff...");
+            System.out.println("listening for server data...");
             //gets the object from the inputStream
             Object objResponse = inFromServer.readObject();
             Document response = (Document) objResponse;

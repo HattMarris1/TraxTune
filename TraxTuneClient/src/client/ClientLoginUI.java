@@ -36,26 +36,7 @@ public class ClientLoginUI {
                 }
                 catch (Exception e1){
                 }
-                /*
-                MessageDigest md = null;
-                
-                try {
 
-                     md = MessageDigest.getInstance("SHA");
-                }
-                catch (NoSuchAlgorithmException e1){
-
-                }
-                byte[] userPasswordBytes =new byte[userPassword.length];
-                for (int i =0;i<userPassword.length;i++){
-                    userPasswordBytes[i] = (byte)userPassword[i];
-                }
-
-                md.update(userPasswordBytes);
-                byte HashText[]=md.digest();
-                System.out.println(HashText + userName);
-                md.reset();
-                */
             }
         });
         RegisterButton.addActionListener(new ActionListener() {
