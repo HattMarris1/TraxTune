@@ -76,8 +76,18 @@ public class ClientMain implements Runnable{
                 System.out.println(response.get("users"));
             }
             else if (Objects.equals(response.getString("header"), "refreshaccount")){
-                Document userDetails = (Document) response.get("userdetails");
+                Document userDetails;
+                userDetails = (Document) response.get("userdetails");
                 mainScreen.refreshAccount(userDetails);
+            }
+            else if (Objects.equals(response.getString("header"), "mychats")){
+                ArrayList<String> userList;
+                userList = (ArrayList<String>) response.get("chatlist");
+                mainScreen.setChatMemberListView(userList);
+            }
+            else if (Objects.equals(response.getString("header"), "messages")){
+                Document messages= (Document)response.get("chatdata");
+                mainScreen.updateChat(messages);
             }
             else {
                 System.out.println(response.getString("error"));

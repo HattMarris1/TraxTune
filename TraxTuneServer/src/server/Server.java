@@ -1,12 +1,15 @@
 package server;
 
+import com.mongodb.Cursor;
 import com.mongodb.MongoClient;
 import com.mongodb.DB;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 
+import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.bson.BSON;
 import org.bson.Document;
 
@@ -21,6 +24,7 @@ import java.util.*;
 
 import static com.mongodb.client.model.Filters.all;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
 
 /**
  * Created by Matthew on 06/03/2017.
@@ -28,9 +32,10 @@ import static com.mongodb.client.model.Filters.eq;
 public class Server {
     private MongoClient mongoClient;
     private MongoDatabase db;
-    private Map<String, String> clients = new HashMap<String,String>();
+    private Map<String, clientSession> clients = new HashMap<>();
     private ServerSocket server;
     private MongoCollection<Document> Users;
+    private MongoCollection<Document> Chats;
 
     private class clientSession implements Runnable{
         private String userName;
@@ -39,7 +44,6 @@ public class Server {
         private ObjectInputStream clientInput = null;
         private ObjectOutputStream clientOutput = null;
 
-        private long UID;
 
         public clientSession(Socket userSocket) {
             this.userSocket = userSocket;
@@ -48,8 +52,18 @@ public class Server {
                 clientOutput = new ObjectOutputStream(userSocket.getOutputStream());
             }
             catch (IOException e4){
-
+                e4.printStackTrace();
             }
+        }
+
+        public void newMessage(Document theChat){
+            try{
+                clientOutput.writeObject(theChat);
+            }
+            catch (IOException e){
+                e.printStackTrace();
+            }
+
         }
 
         public void run(){
@@ -85,6 +99,7 @@ public class Server {
                                 System.out.println("user verified");
                                 Users.updateOne(eq("name",userName), new Document("$set", new Document("lastLogin", new Date())));
                                 //TODO: put user in online user map
+                                clients.put(userName,this);
                                 Document toClient = new Document("profile",theUser)
                                         .append("header","loginsuccess");
 
@@ -192,7 +207,55 @@ public class Server {
                             Users.updateOne(eq("name",userName), (new Document("$pull", new Document("friends",temp))));
                             Users.updateOne(eq("name",temp), (new Document("$pull", new Document("friends",userName))));
                         }
+                    }
+                    else if (Objects.equals(userData.getString("header"), "createchat")){
+                        ArrayList<String > users = (ArrayList<String >)userData.get("users");
+                        users.add(userName);
+                        Document chatdoc = new Document("chatname",userData.get("chatname"))
+                                .append("users",users);
+                        Chats.insertOne(chatdoc);
+                    }
+                    else if (Objects.equals(userData.getString("header"), "getmychats")){
+                        ArrayList<String> chats = new ArrayList<>();
+                        MongoCursor<Document> cursor = Chats.find(in("users",userName)).iterator();
+                        while(cursor.hasNext()){
+                            Document temp = cursor.next();
+                            String chatName = temp.getString("chatname");
+                            chats.add(chatName);
+                        }
+                        Document toUser = new Document("header","mychats")
+                                .append("chatlist",chats);
+                        clientOutput.writeObject(toUser);
+                    }
+                    else if (Objects.equals(userData.getString("header"), "getmessages")){
+                        String chatName = userData.getString("chatname");
+                        Document theChat = Chats.find(eq("chatname",chatName)).first();
+                        Document toUser = new Document("header","messages")
+                                .append("chatdata",theChat);
+                        clientOutput.writeObject(toUser);
+                    }
+                    else if (Objects.equals(userData.getString("header"), "sendmessage")){
+                        Document newMessage = new Document("messages", new Document("content",userData.getString("message"))
+                                .append("from",userName)
+                                .append("date",new Date()));
 
+                        Document messageModify = new Document("$addToSet",newMessage);
+                       Chats.updateOne(eq("chatname",userData.getString("chat")),messageModify);
+
+                       Document theNewChat = Chats.find(eq("chatname",userData.getString("chat"))).first();
+                       Document toUser = new Document("header","messages")
+                               .append("chatdata",theNewChat);
+                       //updates the user that sent the message
+                       clientOutput.writeObject(toUser);
+                       //iterate over all clients that are part of the group and online
+                        ArrayList<String> groupMembers = (ArrayList<String>) theNewChat.get("users");
+                        Iterator<String > iterator = groupMembers.iterator();
+                        while(iterator.hasNext()){
+                            String temp = iterator.next();
+                            if (clients.containsKey(temp)){
+                                clients.get(temp).newMessage(toUser);
+                            }
+                        }
                     }
                     else{
                         System.out.println("not an object type I recognise");
@@ -217,10 +280,13 @@ public class Server {
             // Now connect to databases
             db = mongoClient.getDatabase( "traxtune" );
             Users = db.getCollection("Users");
-            /*org.bson.Document doc = new org.bson.Document("UserName","Bret")
-                    .append("Password","fjfjf")
-                    .append("Friends", new org.bson.Document("1","Jim").append("2","Bob"));*/
-            /*Users.insertOne(doc);*/
+            Chats = db.getCollection("chats");
+            /*ArrayList<String> useres = new ArrayList<>();
+        useres.add("Mal");
+        useres.add("Kaylee");
+            Document doc = new Document("users",useres)
+                    .append("messages","fjfjf");
+            Chats.insertOne(doc);*/
             MongoCursor<Document> cursor = Users.find().iterator();
             while (cursor.hasNext()){
             System.out.println(cursor.next());

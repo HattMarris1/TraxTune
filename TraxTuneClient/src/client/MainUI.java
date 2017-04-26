@@ -2,6 +2,7 @@ package client;
 
 import org.bson.Document;
 
+import javax.print.Doc;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -20,7 +21,6 @@ public class MainUI {
     private JFrame frame;
     private JTabbedPane tabbedPane1;
     private JPanel panel1;
-    private JList list1;
     private JPanel AccountTab;
     private JPanel ChatTab;
     private JLabel UserNameLabel;
@@ -34,7 +34,16 @@ public class MainUI {
     private JButton deleteFriendsButton;
     private JButton sendFriendRequestsButton;
     private JButton refreshButton;
+    private JTextArea ChatTextArea;
+    private JButton createChatWithAboveButton;
+    private JTextField ChatNameField;
+    private JList FriendsList;
+    private JList ChatList;
+    private JButton switchChatButton;
+    private JTextField messageField;
+    private JButton sendButton;
     private JList user;
+    private String currentChat="";
 
     public MainUI(Socket server, Document userDetails) {
 
@@ -42,15 +51,11 @@ public class MainUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 List pendList =pendingList.getSelectedValuesList();
-                ArrayList<String> friendsToAdd = (ArrayList<String>) pendList;
-
-                try {
+                if(!pendList.isEmpty()){
+                    ArrayList<String> friendsToAdd = (ArrayList<String>) pendList;
                     Document usersToAdd = new Document("header", "addfriends")
-                            .append("users", friendsToAdd);
+                                .append("users", friendsToAdd);
                     ClientMain.sendDataToServer(usersToAdd);
-                }
-                catch (Exception e1){
-                    System.out.println(e1);
                 }
             }
         });
@@ -58,15 +63,11 @@ public class MainUI {
             @Override
             public void actionPerformed(ActionEvent e) {
                 List requestList = addFriendsList.getSelectedValuesList();
-                ArrayList<String> friendsToAdd = (ArrayList<String>) requestList;
-
-                try {
+                if(!requestList.isEmpty()){
+                    ArrayList<String> friendsToAdd = (ArrayList<String>) requestList;
                     Document usersToAdd = new Document("header", "friendRequest")
                             .append("users", friendsToAdd);
                     ClientMain.sendDataToServer(usersToAdd);
-                }
-                catch (Exception e1){
-                    System.out.println(e1);
                 }
             }
         }
@@ -98,11 +99,51 @@ public class MainUI {
             public void actionPerformed(ActionEvent e) {
 
                 List deleteList = currentFriendsList.getSelectedValuesList();
-                ArrayList<String> friendsToDelete= (ArrayList<String>) deleteList;
-                Document d = new Document("header","deletefriends")
-                        .append("users",friendsToDelete);
+                if(!deleteList.isEmpty()){
+                    ArrayList<String> friendsToDelete= (ArrayList<String>) deleteList;
+                    Document d = new Document("header","deletefriends")
+                            .append("users",friendsToDelete);
 
+                    ClientMain.sendDataToServer(d);
+                }
+
+            }
+        });
+        createChatWithAboveButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                List usersToadd = FriendsList.getSelectedValuesList();
+                if (!usersToadd.isEmpty()){
+                    ArrayList<String> addUser = (ArrayList<String >) usersToadd;
+                    Document d = new Document("header","createchat")
+                            .append("users",addUser)
+                            .append("chatname",ChatNameField.getText());
+                    ClientMain.sendDataToServer(d);
+                }
+
+            }
+        });
+        switchChatButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String chat = (String)ChatList.getSelectedValue();
+                Document d = new Document("header","getmessages")
+                        .append("chatname",chat);
+                currentChat = chat;
                 ClientMain.sendDataToServer(d);
+            }
+        });
+        sendButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String message = messageField.getText();
+                if(currentChat != ""&&message!="")
+                {
+                Document d = new Document("header","sendmessage")
+                        .append("message",message)
+                        .append("chat",currentChat);
+                ClientMain.sendDataToServer(d);
+                }
             }
         });
     }
@@ -132,14 +173,24 @@ public class MainUI {
 
     private void getListOfUsers(){
         Document userInfoDoc = new Document("header","getallusers");
-
         ClientMain.sendDataToServer(userInfoDoc);
     }
-public void setPeopleYouMayKnow( ArrayList<String> userArray){
-        String[] ud = new String[userArray.size()];
-        Object usersObj[] = userArray.toArray(ud);
-        addFriendsList.setListData(usersObj);
+    private void getGroupChats(){
+        Document userInfoDoc = new Document("header","getmychats");
+        ClientMain.sendDataToServer(userInfoDoc);
     }
+public void setPeopleYouMayKnow( ArrayList<String> userArray) {
+    String[] ud = new String[userArray.size()];
+    Object usersObj[] = userArray.toArray(ud);
+    addFriendsList.setListData(usersObj);
+}
+public void setChatMemberListView(ArrayList<String> chatList){
+        if(!chatList.isEmpty()){
+            String[] chats = new String[chatList.size()];
+            Object chatObj[] = chatList.toArray(chats);
+            ChatList.setListData(chatObj);
+        }
+}
 public void refreshAccount(Document userDetails){
     System.out.println(userDetails);
     setUserNameLabel(userDetails.getString("name"));
@@ -151,6 +202,7 @@ public void refreshAccount(Document userDetails){
         String[] f=new String[friends.size()];
         Object friendObj[] =  friends.toArray(f);
         currentFriendsList.setListData(friendObj);
+        FriendsList.setListData(friendObj);
     }
     ArrayList<String> pendingRequests = (ArrayList<String>)userDetails.get("requests");
 
@@ -160,5 +212,23 @@ public void refreshAccount(Document userDetails){
         pendingList.setListData(requestObj);
     }
     getListOfUsers();
+    getGroupChats();
 }
+
+public void updateChat(Document chatData){
+        ArrayList<Document> messages;
+       Object o = chatData.get("messages");
+       if(o!=null){
+           messages = (ArrayList<Document>) chatData.get("messages");
+           Iterator<Document> documentIterator = messages.iterator();
+           ChatTextArea.setText("");
+           while (documentIterator.hasNext()){
+               Document temp = documentIterator.next();
+               ChatTextArea.append("\n<from= "+temp.getString("from")+"Date :"/*+(temp.getDate("date").toString())*/+"> ");
+               ChatTextArea.append(temp.getString("content"));
+           }
+       }
+
+}
+
 }
